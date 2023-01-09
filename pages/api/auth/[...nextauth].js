@@ -12,9 +12,9 @@ async function refreshAccessToken(token) {
 
     return {
       ...token,
-      accessToken: refreshedTokens.access_token,
-      accessTokenExpires: Date.now() + refreshedTokens.expires_at * 1000,
-      refreshToken: refreshedTokens.refresh_token ?? token.refreshToken, // Fall back to old refresh token
+      accessToken: refreshedToken.access_token,
+      accessTokenExpires: Date.now() + refreshedToken.expires_at * 1000,
+      refreshToken: refreshedToken.refresh_token ?? token.refreshToken, // Fall back to old refresh token
     };
   } catch (error) {
     console.log(error);
