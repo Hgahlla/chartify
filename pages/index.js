@@ -1,14 +1,18 @@
 import { useSession, signIn, signOut } from "next-auth/react";
+import Link from "next/link";
 
 const HomePage = () => {
   const { data: session } = useSession();
 
   if (session) {
     return (
-      <>
-        Signed in as {session.user.email} <br />
-        <button onClick={() => signOut()}>Sign out</button>
-      </>
+      <div className="m-20">
+        <div className="flex space-x-5">
+          Signed in as {session.user.name} <br />
+          <button onClick={() => signOut()}>Sign out</button>
+        </div>
+        <Link href="/search">Search</Link>
+      </div>
     );
   }
 
