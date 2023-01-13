@@ -9,12 +9,17 @@ const ArtistPage = () => {
   const { aid } = router.query;
 
   const {
-    data: artistInfo,
-    error,
-    isLoading,
+    data: tracks,
+    error: tracksError,
+    isLoading: tracksIsLoading,
+  } = useSWR(aid ? `/api/spotify/tracks/${aid}` : null, fetcher);
+
+  const {
+    data: artistInsights,
+    error: artistInsightsError,
+    isLoading: artistInsightsIsLoading,
   } = useSWR(aid ? `/api/spotify/artist/${aid}` : null, fetcher);
 
-  const [tracks, setTracks] = useState([]);
   const [sortedTracks, setSortedTracks] = useState([]);
   const [sortOption, setSortOption] = useState("playcount");
 
@@ -36,55 +41,52 @@ const ArtistPage = () => {
     setSortedTracks(tempTracks);
   };
 
-  // useEffect(() => {
-  //   for (let [releaseType, value] of Object.entries(
-  //     artistInfo?.data.releases
-  //   )) {
-  //     if (releaseType !== "appears_on") {
-  //       value.releases?.forEach((release) => {
-  //         release.discs.forEach((disc) => {
-  //           disc.tracks.forEach((track) => {
-  //             track.cover = release.cover;
-  //             setTracks((oldTracks) => [...oldTracks, track]);
-  //           });
-  //         });
-  //       });
-  //     }
-  //   }
-
-  //   sortTracks(sortOption);
-  // }, [artistInfo]);
-
   useEffect(() => {
-    if (artistInfo?.data?.tracks) {
-      setTracks(artistInfo.data.tracks);
+    if (tracks) {
+      sortTracks(sortOption);
     }
-  }, [artistInfo]);
-
-  useEffect(() => {
-    sortTracks(sortOption);
   }, [tracks, sortOption]);
 
-  if (error) return <div>failed to load</div>;
+  if (tracksError) return <div>failed to load</div>;
 
-  if (isLoading) return <div>loading...</div>;
+  if (tracksIsLoading) return <div>loading...</div>;
 
   return (
     <>
       <Image
-        src={artistInfo?.data?.header_image.image}
+        src={artistInsights?.data?.headerImage.uri}
         alt="Artist Portrait"
         height={60}
         width={60}
       />
       <div className="flex space-x-3">
         <Image
-          src={artistInfo?.data?.info.portraits[0].uri}
+          src={artistInsights?.data?.mainImageUrl}
           alt="Artist Portrait"
           height={60}
           width={60}
         />
-        <h1 className="text-3xl">{artistInfo?.data?.info.name}</h1>
+        <h1 className="text-3xl">{artistInsights?.data?.name}</h1>
+        <h2 className="text-xl">
+          {`#${artistInsights?.data?.globalChartPosition} in the world`}
+        </h2>
+        <h3>{`${artistInsights?.data?.monthlyListeners.toLocaleString(
+          "en-US"
+        )} Monthly Listeners`}</h3>
+        <h3>{`${artistInsights?.data?.followerCount.toLocaleString(
+          "en-US"
+        )} Followers`}</h3>
+        <ol>
+          {artistInsights?.data?.cities.map((city) => {
+            return (
+              <li key={city.city}>
+                {`${city.listeners.toLocaleString("en-US")} listeners in ${
+                  city.city
+                }, ${city.country}`}
+              </li>
+            );
+          })}
+        </ol>
       </div>
       <form>
         <label htmlFor="sort">Sort By</label>
@@ -103,7 +105,13 @@ const ArtistPage = () => {
           <li key={track.uri}>
             <span>
               {track.playcount.toLocaleString("en-US")} {track.popularity}{" "}
-              {track.name}
+              {track.name} {track.album_name}
+              <Image
+                src={track.cover.uri}
+                alt="Album Art"
+                height={60}
+                width={60}
+              />
             </span>
           </li>
         ))}

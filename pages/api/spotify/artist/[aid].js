@@ -1,37 +1,19 @@
+import fetcher from "../../../../lib/fetcher";
+
 export default async function handler(req, res) {
   const { aid } = req.query;
 
   try {
-    const response = await fetch(
-      `${process.env.SP_API_BASE_URL}${process.env.SP_API_ARTIST_INFO}${aid}`
+    // Get artist insights (monthly listeners, "Discovered On" playlists, cities w/ most listeners, etc)
+    const artistInsights = await fetcher(
+      `${process.env.SP_API_BASE_URL}${process.env.SP_API_ARTIST_INSIGHTS}${aid}`
     );
-    const { success, data } = await response.json();
+    const { data } = artistInsights;
 
-    const tracks = getTracks(data);
-    data.tracks = tracks;
-
-    return res.json({ success, data });
+    return res.json({ data });
   } catch (err) {
-    const { success, data } = err;
+    const { success, message } = err;
 
-    return res.json({ success, data });
+    return res.json({ error: { success, message } });
   }
 }
-
-const getTracks = (data) => {
-  let tempTracks = [];
-
-  for (let [releaseType, value] of Object.entries(data.releases)) {
-    if (releaseType === "albums") {
-      value.releases?.forEach((release) => {
-        release.discs.forEach((disc) => {
-          disc.tracks.forEach((track) => {
-            track.cover = release.cover;
-            tempTracks.push(track);
-          });
-        });
-      });
-    }
-  }
-  return tempTracks;
-};
