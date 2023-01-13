@@ -31,6 +31,9 @@ yarn-error.log*
 # vercel
 .vercel
 
+# Visual Studio Code
+/.vscode
+
 # sp-playcount-librespot
 /cache
 credentials.json
